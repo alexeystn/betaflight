@@ -490,6 +490,9 @@ void writeMotors(void)
         for (int i = 0; i < motorCount; i++) {
             pwmWriteMotor(i, motor[i]);
         }
+        for (int i = 0; i < 4; i++) {
+            DEBUG_SET(DEBUG_MOTOR_PWM, i, scaleRange(motor[i], motorOutputLow, motorOutputHigh, 0, 100));
+        }
         pwmCompleteMotorUpdate(motorCount);
     }
 }

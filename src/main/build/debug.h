@@ -93,6 +93,7 @@ typedef enum {
     DEBUG_RX_SIGNAL_LOSS,
     DEBUG_RC_SMOOTHING_RATE,
     DEBUG_ANTI_GRAVITY,
+    DEBUG_MOTOR_PWM,
     DEBUG_COUNT
 } debugType_e;
 
