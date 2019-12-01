@@ -39,6 +39,7 @@
 #include "fc/runtime_config.h"
 
 #include "flight/imu.h"
+#include "flight/imu_silver.h"
 #include "flight/mixer.h"
 #include "flight/pid.h"
 
@@ -503,6 +504,10 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
                         useCOG, courseOverGround,  imuCalcKpGain(currentTimeUs, useAcc, gyroAverage));
 
     imuUpdateEulerAngles();
+
+    imuSilverCalc(deltaT * 1e-6f,
+                  DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
+                  accAverage[X], accAverage[Y], accAverage[Z]);
 #endif
 }
 

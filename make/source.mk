@@ -79,6 +79,7 @@ COMMON_SRC = \
             flight/failsafe.c \
             flight/gps_rescue.c \
             flight/imu.c \
+            flight/imu_silver.c \
             flight/mixer.c \
             flight/mixer_tricopter.c \
             flight/pid.c \
@@ -218,6 +219,7 @@ SPEED_OPTIMISED_SRC := $(SPEED_OPTIMISED_SRC) \
             fc/rc_controls.c \
             fc/runtime_config.c \
             flight/imu.c \
+            flight/imu_silver.c \
             flight/mixer.c \
             flight/pid.c \
             rx/ibus.c \
