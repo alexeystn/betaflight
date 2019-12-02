@@ -497,6 +497,13 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
         useAcc = imuIsAccelerometerHealthy(accAverage);
     }
 
+ #if defined(SILVERWARE_FILTER)   
+    imuSilverCalc(deltaT * 1e-6f,
+                  DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
+                  accAverage[X], accAverage[Y], accAverage[Z]);
+    UNUSED(imuMahonyAHRSupdate);
+    UNUSED(imuUpdateEulerAngles);
+#else
     imuMahonyAHRSupdate(deltaT * 1e-6f,
                         DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
                         useAcc, accAverage[X], accAverage[Y], accAverage[Z],
@@ -504,10 +511,8 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
                         useCOG, courseOverGround,  imuCalcKpGain(currentTimeUs, useAcc, gyroAverage));
 
     imuUpdateEulerAngles();
+#endif
 
-    imuSilverCalc(deltaT * 1e-6f,
-                  DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
-                  accAverage[X], accAverage[Y], accAverage[Z]);
 #endif
 }
 
