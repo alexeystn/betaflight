@@ -504,6 +504,20 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     UNUSED(imuMahonyAHRSupdate);
     UNUSED(imuUpdateEulerAngles);
 #else
+
+    static int16_t debug_cnt = 0;
+    static int16_t overflow_cnt[3] = {0, 0, 0};
+
+    for (int i = 0; i < 3; i++) {
+      if (ABS(gyro.gyroADCf[i]) > 1900.0f) {
+        overflow_cnt[i]++;
+      }
+      DEBUG_SET(DEBUG_RECOVERY, i, overflow_cnt[i]);
+    }
+    debug_cnt++;
+    DEBUG_SET(DEBUG_RECOVERY, 3, debug_cnt);
+
+
     imuMahonyAHRSupdate(deltaT * 1e-6f,
                         DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
                         useAcc, accAverage[X], accAverage[Y], accAverage[Z],
