@@ -69,7 +69,7 @@ typedef struct imuConfig_s {
     accDeadband_t accDeadband;
     uint8_t level_recovery;
     uint16_t level_recovery_time;
-    uint16_t level_recovery_strength;
+    uint16_t level_recovery_coef;
     uint16_t level_recovery_threshold;
 } imuConfig_t;
 
@@ -83,7 +83,7 @@ typedef struct imuRuntimeConfig_s {
     accDeadband_t accDeadband;
     uint8_t level_recovery;
     uint16_t level_recovery_time;
-    uint16_t level_recovery_strength;
+    uint16_t level_recovery_coef;
     uint16_t level_recovery_threshold;
 } imuRuntimeConfig_t;
 

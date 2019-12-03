@@ -737,7 +737,7 @@ const clivalue_t valueTable[] = {
     { "small_angle",                VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0, 180 }, PG_IMU_CONFIG, offsetof(imuConfig_t, small_angle) },
     { "level_recovery",             VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery) },
     { "level_recovery_time",        VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 10000 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_time) },
-    { "level_recovery_strength",    VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 100 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_strength) },
+    { "level_recovery_coef",        VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 20 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_coef) },
     { "level_recovery_threshold",   VAR_UINT16 | MASTER_VALUE, .config.minmax = { 0, 2000 }, PG_IMU_CONFIG, offsetof(imuConfig_t, level_recovery_threshold) },
 
 // PG_ARMING_CONFIG

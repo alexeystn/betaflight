@@ -94,6 +94,7 @@ float accVelScale;
 bool canUseGPSHeading = true;
 
 bool levelRecoveryActive = false;
+int levelRecoveryStrength = 0;
 
 static float throttleAngleScale;
 static int throttleAngleValue;
@@ -124,7 +125,7 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .acc_unarmedcal = 1,
     .level_recovery = 1,
     .level_recovery_time = 2500,
-    .level_recovery_strength = 100,
+    .level_recovery_coef = 5,
     .level_recovery_threshold = 1900
 );
 
@@ -171,7 +172,7 @@ void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correctio
 
     imuRuntimeConfig.level_recovery = imuConfig()->level_recovery;
     imuRuntimeConfig.level_recovery_time = imuConfig()->level_recovery_time;
-    imuRuntimeConfig.level_recovery_strength = imuConfig()->level_recovery_strength;
+    imuRuntimeConfig.level_recovery_coef = imuConfig()->level_recovery_coef;
     imuRuntimeConfig.level_recovery_threshold = imuConfig()->level_recovery_threshold;
 
     fc_acc = calculateAccZLowPassFilterRCTimeConstant(5.0f); // Set to fix value
@@ -441,51 +442,58 @@ float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAverage)
        }
     }
 
+
+    if (levelRecoveryActive) {
+        ret = imuRuntimeConfig.dcm_kp * (1.0f + imuRuntimeConfig.level_recovery_coef * levelRecoveryStrength / 1000);
+    }
+    DEBUG_SET(DEBUG_RECOVERY, 0, lrintf(ret*100.0f));
+
     return ret;
 }
 
 static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
 {
-  static timeUs_t previousCrashTime = 0;
+    static timeUs_t previousCrashTime = 0;
 
-  static int16_t debugCnt = 0;
-  static int16_t overflowCnt = 0;
-  uint32_t recoveryPercents = 0;
+    static int16_t debugCnt = 0;
+    static int16_t overflowCnt = 0;
 
-  for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
-    if (ABS(gyro.gyroADCf[i]) > imuRuntimeConfig.level_recovery_threshold) {
-      overflowCnt++;
-      previousCrashTime = currentTimeUs;
+    for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+        if (ABS(gyro.gyroADCf[i]) > imuRuntimeConfig.level_recovery_threshold) {
+            overflowCnt++;
+            previousCrashTime = currentTimeUs;
+        }
     }
-  }
   
-  timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
-  if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
-    levelRecoveryActive = true;
-    // 0 min, 1000 max
-    recoveryPercents = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
-  } else {
-    levelRecoveryActive = false;
-    recoveryPercents = 0;
-  }
+    timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
+    if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
+        levelRecoveryActive = true;
+        // 0 min, 1000 max
+        // First half - full, second half - decaying
+        levelRecoveryStrength = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
+        levelRecoveryStrength *= 2;
+        if (levelRecoveryStrength > 1000) 
+            levelRecoveryStrength = 1000;
+    } else {
+        levelRecoveryActive = false;
+        levelRecoveryStrength = 0;
+    }
 
-  if (!ARMING_FLAG(ARMED)) {
-    levelRecoveryActive = false;
-    recoveryPercents = 0;
-  }
+    if (!ARMING_FLAG(ARMED)) {
+        levelRecoveryActive = false;
+        levelRecoveryStrength = 0;
+    }
 
+    debugCnt++;
 
-  debugCnt++;
-
-  DEBUG_SET(DEBUG_RECOVERY, 1, recoveryPercents);
-  DEBUG_SET(DEBUG_RECOVERY, 2, overflowCnt);
-  DEBUG_SET(DEBUG_RECOVERY, 3, debugCnt);
-
+    DEBUG_SET(DEBUG_RECOVERY, 1, levelRecoveryStrength);
+    DEBUG_SET(DEBUG_RECOVERY, 2, overflowCnt);
+    DEBUG_SET(DEBUG_RECOVERY, 3, debugCnt);
 }
 
 bool isLevelRecoveryActive(void)
 {
-  return levelRecoveryActive;
+    return levelRecoveryActive;
 }
 
 
@@ -562,7 +570,9 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     UNUSED(imuUpdateEulerAngles);
 #else
 
-    imuHandleLevelRecovery(currentTimeUs);
+    if (imuRuntimeConfig.level_recovery) {
+        imuHandleLevelRecovery(currentTimeUs);
+    }
 
     imuMahonyAHRSupdate(deltaT * 1e-6f,
                         DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
