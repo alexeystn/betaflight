@@ -67,6 +67,10 @@ typedef struct imuConfig_s {
     uint8_t small_angle;
     uint8_t acc_unarmedcal;                 // turn automatic acc compensation on/off
     accDeadband_t accDeadband;
+    uint8_t level_recovery;
+    uint16_t level_recovery_time;
+    uint16_t level_recovery_strength;
+    uint16_t level_recovery_threshold;
 } imuConfig_t;
 
 PG_DECLARE(imuConfig_t, imuConfig);
@@ -77,6 +81,10 @@ typedef struct imuRuntimeConfig_s {
     uint8_t acc_unarmedcal;
     uint8_t small_angle;
     accDeadband_t accDeadband;
+    uint8_t level_recovery;
+    uint16_t level_recovery_time;
+    uint16_t level_recovery_strength;
+    uint16_t level_recovery_threshold;
 } imuRuntimeConfig_t;
 
 void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correction_value);
@@ -101,3 +109,5 @@ bool imuQuaternionHeadfreeOffsetSet(void);
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def * v);
 void imuComputeQuaternionFromRPY(quaternionProducts *qP, int16_t initialRoll, int16_t initialPitch, int16_t initialYaw);
 bool shouldInitializeGPSHeading(void);
+
+bool isLevelRecoveryMode(void);

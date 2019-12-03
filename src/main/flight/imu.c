@@ -93,6 +93,8 @@ int accSumCount = 0;
 float accVelScale;
 bool canUseGPSHeading = true;
 
+bool levelRecoveryModeState = false;
+
 static float throttleAngleScale;
 static int throttleAngleValue;
 static float fc_acc;
@@ -119,7 +121,11 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .dcm_ki = 0,                   // 0.003 * 10000
     .small_angle = 25,
     .accDeadband = {.xy = 40, .z= 40},
-    .acc_unarmedcal = 1
+    .acc_unarmedcal = 1,
+    .level_recovery = 1,
+    .level_recovery_time = 2500,
+    .level_recovery_strength = 100,
+    .level_recovery_threshold = 1900
 );
 
 STATIC_UNIT_TESTED void imuComputeRotationMatrix(void){
@@ -162,6 +168,11 @@ void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correctio
     imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
     imuRuntimeConfig.acc_unarmedcal = imuConfig()->acc_unarmedcal;
     imuRuntimeConfig.small_angle = imuConfig()->small_angle;
+
+    imuRuntimeConfig.level_recovery = imuConfig()->level_recovery;
+    imuRuntimeConfig.level_recovery_time = imuConfig()->level_recovery_time;
+    imuRuntimeConfig.level_recovery_strength = imuConfig()->level_recovery_strength;
+    imuRuntimeConfig.level_recovery_threshold = imuConfig()->level_recovery_threshold;
 
     fc_acc = calculateAccZLowPassFilterRCTimeConstant(5.0f); // Set to fix value
     throttleAngleScale = calculateThrottleAngleScale(throttle_correction_angle);
@@ -433,6 +444,52 @@ float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAverage)
     return ret;
 }
 
+static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
+{
+  static timeUs_t previousCrashTime = 0;
+
+  static int16_t debugCnt = 0;
+  static int16_t overflowCnt = 0;
+  uint32_t recoveryPercents = 0;
+
+  for (int i = 0; i < XYZ_AXIS_COUNT; i++) {
+    if (ABS(gyro.gyroADCf[i]) > imuRuntimeConfig.level_recovery_threshold) {
+      overflowCnt++;
+      previousCrashTime = currentTimeUs;
+    }
+  }
+  
+  timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
+  if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
+    levelRecoveryModeState = true;
+    // 0 min, 1000 max
+    recoveryPercents = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
+  } else {
+    levelRecoveryModeState = false;
+    recoveryPercents = 0;
+  }
+
+  if (!ARMING_FLAG(ARMED)) {
+    levelRecoveryModeState = false;
+    recoveryPercents = 0;
+  }
+
+
+  debugCnt++;
+
+  DEBUG_SET(DEBUG_RECOVERY, 1, recoveryPercents);
+  DEBUG_SET(DEBUG_RECOVERY, 2, overflowCnt);
+  DEBUG_SET(DEBUG_RECOVERY, 3, debugCnt);
+
+}
+
+bool isLevelRecoveryMode(void)
+{
+  return levelRecoveryModeState;
+}
+
+
+
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousIMUUpdateTime;
@@ -505,18 +562,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     UNUSED(imuUpdateEulerAngles);
 #else
 
-    static int16_t debug_cnt = 0;
-    static int16_t overflow_cnt[3] = {0, 0, 0};
-
-    for (int i = 0; i < 3; i++) {
-      if (ABS(gyro.gyroADCf[i]) > 1900.0f) {
-        overflow_cnt[i]++;
-      }
-      DEBUG_SET(DEBUG_RECOVERY, i, overflow_cnt[i]);
-    }
-    debug_cnt++;
-    DEBUG_SET(DEBUG_RECOVERY, 3, debug_cnt);
-
+    imuHandleLevelRecovery(currentTimeUs);
 
     imuMahonyAHRSupdate(deltaT * 1e-6f,
                         DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
