@@ -110,4 +110,4 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def * v);
 void imuComputeQuaternionFromRPY(quaternionProducts *qP, int16_t initialRoll, int16_t initialPitch, int16_t initialYaw);
 bool shouldInitializeGPSHeading(void);
 
-bool isLevelRecoveryMode(void);
+bool isLevelRecoveryActive(void);

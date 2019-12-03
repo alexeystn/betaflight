@@ -93,7 +93,7 @@ int accSumCount = 0;
 float accVelScale;
 bool canUseGPSHeading = true;
 
-bool levelRecoveryModeState = false;
+bool levelRecoveryActive = false;
 
 static float throttleAngleScale;
 static int throttleAngleValue;
@@ -461,16 +461,16 @@ static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
   
   timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
   if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
-    levelRecoveryModeState = true;
+    levelRecoveryActive = true;
     // 0 min, 1000 max
     recoveryPercents = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
   } else {
-    levelRecoveryModeState = false;
+    levelRecoveryActive = false;
     recoveryPercents = 0;
   }
 
   if (!ARMING_FLAG(ARMED)) {
-    levelRecoveryModeState = false;
+    levelRecoveryActive = false;
     recoveryPercents = 0;
   }
 
@@ -483,9 +483,9 @@ static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
 
 }
 
-bool isLevelRecoveryMode(void)
+bool isLevelRecoveryActive(void)
 {
-  return levelRecoveryModeState;
+  return levelRecoveryActive;
 }
 
 
