@@ -94,7 +94,7 @@ float accVelScale;
 bool canUseGPSHeading = true;
 
 bool levelRecoveryActive = false;
-int levelRecoveryStrength = 0;
+int levelRecoveryStrength = 0; // from 0 (min) to 1000 (max)
 
 static float throttleAngleScale;
 static int throttleAngleValue;
@@ -442,7 +442,6 @@ float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAverage)
        }
     }
 
-
     if (levelRecoveryActive) {
         ret = imuRuntimeConfig.dcm_kp * (1.0f + imuRuntimeConfig.level_recovery_coef * levelRecoveryStrength / 1000);
     }
@@ -468,9 +467,8 @@ static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
     timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
     if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
         levelRecoveryActive = true;
-        // 0 min, 1000 max
-        // First half - full, second half - decaying
         levelRecoveryStrength = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
+        // First half - full strenght, second half - decaying strengh
         levelRecoveryStrength *= 2;
         if (levelRecoveryStrength > 1000) 
             levelRecoveryStrength = 1000;
@@ -482,6 +480,7 @@ static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
     if (!ARMING_FLAG(ARMED)) {
         levelRecoveryActive = false;
         levelRecoveryStrength = 0;
+        previousCrashTime = 0;
     }
 
     debugCnt++;
