@@ -1,122 +1,74 @@
-![Betaflight](https://raw.githubusercontent.com/wiki/betaflight/betaflight/images/betaflight/bf_logo.png)
+#Betaflight 3.5.8 with Сrash Level Recovery for Tiny Whoops
 
-Betaflight is flight controller software (firmware) used to fly multi-rotor craft and fixed wing craft.
+Betaflight 3.5.8 сделан на основе Betaflight 3.5.7 с добавлением функции Level Recovery.
+Level Recovery устраняет сбой гироскопа, при котором после сильных столкновений на вупе сбивается горизонт, и его начинает тянуть в сторону в течение нескольких секунд.
+По крайней мере, пытается устранить. :)
 
-This fork differs from Baseflight and Cleanflight in that it focuses on flight performance, leading-edge feature additions, and wide target support.
+## Теория
 
-## Events
+В Бетафлайте ориентация дрона относительно горизонта определяется фильтром Махони. Фильтр берёт значения с гироскопа и акселерометра и смешивает их хитрым образом, через матрицы, кватернионы и прочую мудрёную математику, получая ориентацию относительно земли. Работает этот фильтр только в режимах Angle/Horizon, в режиме Acro он не принимает участия. Потому заметить проблему можно только на вупах, 
+Реализован фильтр Махони здесь:
+https://github.com/betaflight/betaflight/blob/master/src/main/flight/imu.c в функции imuMahonyAHRSupdate()
 
-| Date  | Event |
-| - | - |
-| 22 July 2018 | Start of feature freeze / Release Candidate window for Betaflight 3.5 |
-| 05 August 2018 | Planned [release](https://github.com/betaflight/betaflight/milestone/21) date for Betaflight 3.5 |
-| 01 January 2019 | Planned [release](https://github.com/betaflight/betaflight/milestone/20) date for Betaflight 4.0 |
+## Проблема
 
-## Features
+Во время сильного удара дрон крутится со скоростью большей, чем может зарегистрировать гироскоп (2000 градусов в секунду). На фильтр приходят некорректные значения скорости и положение определяется неправильно. Фильтр Махони очень инерционный и на восстановление может уйти 10-15 секунд. В это время пилот наблюдает, как его вуп тянет в сторону.
+Имеющиеся в Бетафлайте функции crash_recovery в режимах Angle/Horizon не помогают.
+Спасает только посадка и дизарм, при котором происходит сброс значений в фильтре.
+https://github.com/betaflight/betaflight/issues/5325
 
-Betaflight has the following features:
+## Решение
 
-* Multi-color RGB LED strip support (each LED can be a different color using variable length WS2811 Addressable RGB strips - use for Orientation Indicators, Low Battery Warning, Flight Mode Status, Initialization Troubleshooting, etc)
-* DShot (150, 300, 600 and 1200), Multishot, and Oneshot (125 and 42) motor protocol support
-* Blackbox flight recorder logging (to onboard flash or external microSD card where equipped)
-* Support for targets that use the STM32 F7, F4, F3 and F1 processors
-* PWM, PPM, and Serial (SBus, SumH, SumD, Spektrum 1024/2048, XBus, etc) RX connection with failsafe detection
-* Multiple telemetry protocols (CSRF, FrSky, HoTT smart-port, MSP, etc)
-* RSSI via ADC - Uses ADC to read PWM RSSI signals, tested with FrSky D4R-II, X8R, X4R-SB, & XSR
-* OSD support & configuration without needing third-party OSD software/firmware/comm devices
-* OLED Displays - Display information on: Battery voltage/current/mAh, profile, rate profile, mode, version, sensors, etc
-* In-flight manual PID tuning and rate adjustment
-* Rate profiles and in-flight selection of them
-* Configurable serial ports for Serial RX, Telemetry, ESC telemetry, MSP, GPS, OSD, Sonar, etc - Use most devices on any port, softserial included
-* VTX support for Unify Pro and IRC Tramp
-* and MUCH, MUCH more.
+Моя небольшая модификация BF детектирует краши и в течение двух секунд после удара в несколько раз ускоряет стабилизацию работы фильтра, а именно увеличивает коэффициент `dcm_Kp`, отвечающий за скорость сходимости показаний гироскопа и акселерометра.
+Видео, демонстрирующее работу Level Recovery:
+https://youtu.be/Ftog5Rmj9hc
+После сильных столкновения появляется сообщение Recovery и вуп продолжает свой полёт без сбоев гиры и акселя.
 
-## Installation & Documentation
+## Что нужно сделать
 
-See: https://github.com/betaflight/betaflight/wiki
+1. Прошить HEX-файл с моей сборкой Betaflight 3.5.8.
+2. Восстановить в конфигураторе свои привычные настройки, которые вы используете в 3.5.7.
+3. Убедиться что на OSD включены Warnings.
+4. Проверить поведение вупа при сильных крашах.
+5. Сообщить мне о результате: 
+- стало лучше (перестал сбиваться горизонт)
+- стало хуже (уплывает даже там, где раньше не уплывало) 
+- ничего не изменилось
 
-## IRC Support and Developers Channel
+После очень сильного удара, активируется восстановление горизонта и на OSD появляется надпись "RECOVERY". В течение этого времени гироскоп и акселерометр приходят в себя. Полёт должен продолжаться без уплывшего горизонта.
 
-There's a dedicated Slack chat channel here:
+Можно включать и отключать эту функцию в консоли:
+`set level_recovery = ON` (или `OFF`, по умолчанию стоит `ON`)
+При значении OFF вуп ведёт себя точно так же, как и в стоковой 3.5.7. 
 
-https://slack.betaflight.com/
 
-Etiquette: Don't ask to ask and please wait around long enough for a reply - sometimes people are out flying, asleep or at work and can't answer immediately.
+## Что ещё можно сделать
 
-## Configuration Tool
+Прописать в консоли: 
+```
+   set debug_mode = RECOVERY
+   save
+```
+В конфигураторе вывести на OSD параметр `Debug`, а также `Angle:Pitch` и `Angle:Roll`.
+После этого попробовать полетать с крашами, записать DVR с процессом и поделиться со мной.
+Цифры на OSD помогут мне для дальнейшей работы.
 
-To configure Betaflight you should use the Betaflight-configurator GUI tool (Windows/OSX/Linux) that can be found here:
 
-https://chrome.google.com/webstore/detail/betaflight-configurator/kdaghagfopacdngbohiknlhcocjccjao
+## CLI параметры
 
-The source for it is here:
+В прошивку добавлено несколько консольных параметров. Их можно изменять в CLI:
 
-https://github.com/betaflight/betaflight-configurator
+Переменная|Описание|Default 
+----------|--------|-------
+`level_recovery`|Включение/отключение функции.|ON
+`level_recovery_time`| Время работы ускоренной стабилизации после удара, в миллиcекундах.|2500
+`level_recovery_coef`|Множитель, показывающий, во сколько раз ускоряется фильтр после краша.|5
+`level_recovery_threshold`|Порог срабатывания функции в градусах в секунду.|1900
+`osd_warn_level_recovery`|Включает отображение надписи "RECOVERY" на OSD.|ON
+  
 
-## Contributing
+Прошивка собрана под наиболее популярные полётные контроллеры для микро-квадриков. 
+HEX-файлы находятся на странице Releases.
+https://github.com/alexeystn/betaflight/releases
 
-Contributions are welcome and encouraged.  You can contribute in many ways:
-
-* Documentation updates and corrections.
-* How-To guides - received help? Help others!
-* Bug reporting & fixes.
-* New feature ideas & suggestions.
-
-The best place to start is the IRC channel on gitter (see above), drop in, say hi. Next place is the github issue tracker:
-
-https://github.com/betaflight/betaflight/issues
-https://github.com/betaflight/betaflight-configurator/issues
-
-Before creating new issues please check to see if there is an existing one, search first otherwise you waste peoples time when they could be coding instead!
-
-## Developers
-
-Please refer to the development section in the `docs/development` folder.
-
-TravisCI is used to run automatic builds
-
-https://travis-ci.org/betaflight/betaflight
-
-[![Build Status](https://travis-ci.org/betaflight/betaflight.svg?branch=master)](https://travis-ci.org/betaflight/betaflight)
-
-## Betaflight Releases
-
-https://github.com/betaflight/betaflight/releases
-
-## Open Source / Contributors
-
-Betaflight is software that is **open source** and is available free of charge without warranty to all users.
-
-Betaflight is forked from Cleanflight, so thanks goes to all those whom have contributed to Cleanflight and its origins.
-
-Origins for this fork (Thanks!):
-* **Alexinparis** (for MultiWii),
-* **timecop** (for Baseflight),
-* **Dominic Clifton** (for Cleanflight), and
-* **Sambas** (for the original STM32F4 port).
-
-The Betaflight Configurator is forked from Cleanflight Configurator and its origins.
-
-Origins for Betaflight Configurator:
-* **Dominic Clifton** (for Cleanflight configurator), and
-* **ctn** (for the original Configurator).
-
-Big thanks to current and past contributors:
-* Budden, Martin (martinbudden)
-* Bardwell, Joshua (joshuabardwell)
-* Blackman, Jason (blckmn)
-* ctzsnooze
-* Höglund, Anders (andershoglund)
-* Ledvina, Petr (ledvinap) - **IO code awesomeness!**
-* kc10kevin
-* Keeble, Gary (MadmanK)
-* Keller, Michael (mikeller) - **Configurator brilliance**
-* Kravcov, Albert (skaman82) - **Configurator brilliance**
-* MJ666
-* Nathan (nathantsoi)
-* ravnav
-* sambas - **bringing us the F4**
-* savaga
-* Stålheim, Anton (KiteAnton)
-
-And many many others who haven't been mentioned....
+Если вашего таргета нет в списке, напишите мне в телеграм t.me/AlexeyStn и я добавлю его.
