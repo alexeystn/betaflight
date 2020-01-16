@@ -97,7 +97,7 @@
 #define ACC_MPU6500_ALIGN       CW180_DEG
 #define GYRO_MPU6500_ALIGN      CW180_DEG
 
-#define USE_BARO
+//#define USE_BARO
 #define USE_BARO_BMP280
 
 #define USE_MAG
