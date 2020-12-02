@@ -48,6 +48,7 @@
 #include "flight/gyroanalyse.h"
 #endif
 #include "flight/rpm_filter.h"
+#include "flight/imu.h"
 
 #include "io/beeper.h"
 #include "io/statusindicator.h"
@@ -306,6 +307,7 @@ static FAST_CODE void checkForOverflow(timeUs_t currentTimeUs)
     // ICM gyros are specified to +/- 2000 deg/sec, in a crash they can go out of spec.
     // This can cause an overflow and sign reversal in the output.
     // Overflow and sign reversal seems to result in a gyro value of +1996 or -1996.
+    // Description for Level Recovery
     if (overflowDetected) {
         handleOverflow(currentTimeUs);
     } else {
@@ -331,6 +333,9 @@ static FAST_CODE void checkForOverflow(timeUs_t currentTimeUs)
         if (overflowCheck & gyro.overflowAxisMask) {
             overflowDetected = true;
             overflowTimeUs = currentTimeUs;
+            if (imuConfig()->level_recovery) {
+              imuActivateLevelRecovery(currentTimeUs);
+            }
 #ifdef USE_YAW_SPIN_RECOVERY
             yawSpinDetected = false;
 #endif // USE_YAW_SPIN_RECOVERY
@@ -520,7 +525,7 @@ FAST_CODE void gyroFiltering(timeUs_t currentTimeUs)
     }
 
 #ifdef USE_GYRO_OVERFLOW_CHECK
-    if (gyroConfig()->checkOverflow && !gyro.gyroHasOverflowProtection) {
+    if ((gyroConfig()->checkOverflow && !gyro.gyroHasOverflowProtection) || (imuConfig()->level_recovery)) {
         checkForOverflow(currentTimeUs);
     }
 #endif

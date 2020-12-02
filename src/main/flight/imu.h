@@ -97,3 +97,4 @@ bool shouldInitializeGPSHeading(void);
 bool isUpright(void);
 
 bool isLevelRecoveryActive(void);
+void imuActivateLevelRecovery(timeUs_t currentTimeUs);
