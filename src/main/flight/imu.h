@@ -96,5 +96,5 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def * v);
 bool shouldInitializeGPSHeading(void);
 bool isUpright(void);
 
-bool isLevelRecoveryActive(void);
+bool imuIsLevelRecoveryActive(void);
 void imuActivateLevelRecovery(timeUs_t currentTimeUs);

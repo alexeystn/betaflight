@@ -466,7 +466,7 @@ static float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAvera
     return ret;
 }
 
-bool isLevelRecoveryActive(void)
+bool imuIsLevelRecoveryActive(void)
 {
     return levelRecoveryActive;
 }
@@ -476,7 +476,6 @@ void imuActivateLevelRecovery(timeUs_t currentTimeUs)
     levelRecoveryActive = true;
     levelRecoveryTimeEnd = currentTimeUs + imuRuntimeConfig.level_recovery_time * 1000;
 }
-
 
 
 #if defined(USE_GPS)
