@@ -333,7 +333,7 @@ static FAST_CODE void checkForOverflow(timeUs_t currentTimeUs)
         if (overflowCheck & gyro.overflowAxisMask) {
             overflowDetected = true;
             overflowTimeUs = currentTimeUs;
-            if (imuConfig()->level_recovery) {
+            if ((imuConfig()->level_recovery) && (FLIGHT_MODE(ANGLE_MODE) || (FLIGHT_MODE(HORIZON_MODE)))) {
               imuActivateLevelRecovery(currentTimeUs);
             }
 #ifdef USE_YAW_SPIN_RECOVERY
