@@ -1431,6 +1431,13 @@ static void osdElementWarnings(osdElementParms_t *element)
         return;
     }
 
+    if (isLevelRecoveryActive() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
+        tfp_sprintf(element->buff, "RECOVERY");
+        element->attr = DISPLAYPORT_ATTR_WARNING;
+        SET_BLINK(OSD_WARNINGS);
+        return;
+    }
+
 #ifdef USE_ADC_INTERNAL
     const int16_t coreTemperature = getCoreTemperatureCelsius();
     if (osdWarnGetState(OSD_WARNING_CORE_TEMPERATURE) && coreTemperature >= osdConfig()->core_temp_alarm) {
