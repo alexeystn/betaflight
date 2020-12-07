@@ -453,15 +453,14 @@ static float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAvera
     if (levelRecoveryActive) {
         if (currentTimeUs < levelRecoveryTimeEnd) {
             ret = imuRuntimeConfig.dcm_kp * imuRuntimeConfig.level_recovery_coef;
-            DEBUG_SET(DEBUG_LEVEL_RECOVERY, 2, cmpTimeUs(levelRecoveryTimeEnd, currentTimeUs) / 1000);
+            DEBUG_SET(DEBUG_LEVEL_RECOVERY, 3, cmpTimeUs(levelRecoveryTimeEnd, currentTimeUs) / 1000);
         } else {
             levelRecoveryActive = false;
             levelRecoveryTimeEnd = 0;
-            DEBUG_SET(DEBUG_LEVEL_RECOVERY, 2, 0);
+            DEBUG_SET(DEBUG_LEVEL_RECOVERY, 3, 0);
         }        
     }
-    DEBUG_SET(DEBUG_LEVEL_RECOVERY, 0, levelRecoveryActive);
-    DEBUG_SET(DEBUG_LEVEL_RECOVERY, 1, lrintf(ret*100.0f));
+    DEBUG_SET(DEBUG_LEVEL_RECOVERY, 2, lrintf(ret*100.0f));
 
     return ret;
 }

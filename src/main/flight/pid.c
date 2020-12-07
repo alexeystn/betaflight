@@ -444,13 +444,15 @@ static void handleCrashRecovery(
     }
 }
 
+uint16_t crashCounter = 0;
+
 static void detectAndSetCrashRecovery(
     const pidCrashRecovery_e crash_recovery, const int axis,
     const timeUs_t currentTimeUs, const float delta, const float errorRate)
 {
     // if crash recovery is on and accelerometer enabled and there is no gyro overflow, then check for a crash
     // no point in trying to recover if the crash is so severe that the gyro overflows
-    if ((crash_recovery || FLIGHT_MODE(GPS_RESCUE_MODE)) && !gyroOverflowDetected()) {
+    if ((crash_recovery || FLIGHT_MODE(GPS_RESCUE_MODE)) /*&& !gyroOverflowDetected()*/) {
         if (ARMING_FLAG(ARMED)) {
             if (getMotorMixRange() >= 1.0f && !pidRuntime.inCrashRecoveryMode
                 && fabsf(delta) > pidRuntime.crashDtermThreshold
@@ -461,6 +463,8 @@ static void detectAndSetCrashRecovery(
                     disarm(DISARM_REASON_CRASH_PROTECTION);
                 } else {
                     pidRuntime.inCrashRecoveryMode = true;
+                    crashCounter++;
+                    DEBUG_SET(DEBUG_LEVEL_RECOVERY, 0, crashCounter);
                     pidRuntime.crashDetectedAtUs = currentTimeUs;
                 }
             }

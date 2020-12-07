@@ -301,6 +301,8 @@ static FAST_CODE_NOINLINE void handleOverflow(timeUs_t currentTimeUs)
     }
 }
 
+uint16_t overflowCounter = 0;
+
 static FAST_CODE void checkForOverflow(timeUs_t currentTimeUs)
 {
     // check for overflow to handle Yaw Spin To The Moon (YSTTM)
@@ -335,6 +337,8 @@ static FAST_CODE void checkForOverflow(timeUs_t currentTimeUs)
             overflowTimeUs = currentTimeUs;
             if ((imuConfig()->level_recovery) && (FLIGHT_MODE(ANGLE_MODE) || (FLIGHT_MODE(HORIZON_MODE)))) {
               imuActivateLevelRecovery(currentTimeUs);
+              overflowCounter++;
+              DEBUG_SET(DEBUG_LEVEL_RECOVERY, 1, overflowCounter);
             }
 #ifdef USE_YAW_SPIN_RECOVERY
             yawSpinDetected = false;
