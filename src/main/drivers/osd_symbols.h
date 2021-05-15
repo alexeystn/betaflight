@@ -156,3 +156,6 @@
 #define SYM_STICK_OVERLAY_CENTER      0x0B
 #define SYM_STICK_OVERLAY_VERTICAL    0x16
 #define SYM_STICK_OVERLAY_HORIZONTAL  0x17
+
+// Heart rate
+#define SYM_HEART                     0x79

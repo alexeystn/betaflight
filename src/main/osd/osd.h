@@ -144,6 +144,7 @@ typedef enum {
     OSD_RC_CHANNELS,
     OSD_CAMERA_FRAME,
     OSD_EFFICIENCY,
+    OSD_HEART_RATE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -288,6 +289,9 @@ typedef struct osdConfig_s {
     uint8_t logo_on_arming_duration;          // display duration in 0.1s units
     uint8_t camera_frame_width;               // The width of the box for the camera frame element
     uint8_t camera_frame_height;              // The height of the box for the camera frame element
+#ifdef USE_HEART_RATE
+    uint8_t heart_rate_channel;
+#endif
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
