@@ -1441,6 +1441,7 @@ const clivalue_t valueTable[] = {
     { "osd_camera_frame_pos",   VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CAMERA_FRAME]) },
     { "osd_efficiency_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_EFFICIENCY]) },
     { "osd_total_flights_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_TOTAL_FLIGHTS]) },
+    { "osd_heart_rate_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_HEART_RATE]) },
 
     // OSD stats enabled flags are stored as bitmapped values inside a 32bit parameter
     // It is recommended to keep the settings order the same as the enumeration. This way the settings are displayed in the cli in the same order making it easier on the users
@@ -1490,6 +1491,7 @@ const clivalue_t valueTable[] = {
     { "osd_stat_avg_cell_value",    VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_OFF_ON }, PG_OSD_CONFIG, offsetof(osdConfig_t, stat_show_cell_value) },
     { "osd_framerate_hz",           VAR_UINT16 | MASTER_VALUE, .config.minmaxUnsigned = { OSD_FRAMERATE_MIN_HZ, OSD_FRAMERATE_MAX_HZ }, PG_OSD_CONFIG, offsetof(osdConfig_t, framerate_hz) },
     { "osd_menu_background",        VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_CMS_BACKGROUND }, PG_OSD_CONFIG, offsetof(osdConfig_t, cms_background_type) },
+    { "osd_heart_rate_channel",     VAR_UINT8  | MASTER_VALUE, .config.minmaxUnsigned = { 1, MAX_SUPPORTED_RC_CHANNEL_COUNT }, PG_OSD_CONFIG, offsetof(osdConfig_t, heart_rate_channel) },
 #endif // end of #ifdef USE_OSD
 
 // PG_SYSTEM_CONFIG

@@ -1333,6 +1333,27 @@ static void osdElementRcChannels(osdElementParms_t *element)
     element->drawElement = false;  // element already drawn
 }
 
+static void osdElementHeartRate(osdElementParms_t *element)
+{
+    static uint16_t heartRate = 0;
+    static timeUs_t heartRateUpdateTimeUs = 0;
+    uint16_t newHeartRate;
+    
+    newHeartRate = scaleRange(constrain(rcData[osdConfig()->heart_rate_channel - 1], PWM_RANGE_MIN, PWM_RANGE_MAX),
+            PWM_RANGE_MIN, PWM_RANGE_MAX, 0, 200);
+
+    if (micros() > (heartRateUpdateTimeUs + 1e6)) {
+        heartRate = newHeartRate;
+        heartRateUpdateTimeUs = micros();
+    }
+
+    if (heartRate > 0) {
+        tfp_sprintf(element->buff, "%c%d", SYM_HEART, heartRate);
+    } else {
+       tfp_sprintf(element->buff, "%c", SYM_HEART);
+    }
+}
+
 static void osdElementRemainingTimeEstimate(osdElementParms_t *element)
 {
     const int mAhDrawn = getMAhDrawn();
@@ -1557,6 +1578,7 @@ static const uint8_t osdElementDisplayOrder[] = {
 #ifdef USE_PERSISTENT_STATS
     OSD_TOTAL_FLIGHTS,
 #endif
+    OSD_HEART_RATE,
 };
 
 // Define the mapping between the OSD element id and the function to draw it
@@ -1674,6 +1696,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
 #ifdef USE_PERSISTENT_STATS
     [OSD_TOTAL_FLIGHTS]           = osdElementTotalFlights,
 #endif
+    [OSD_HEART_RATE]              = osdElementHeartRate,
 };
 
 // Define the mapping between the OSD element id and the function to draw its background (static part)
