@@ -231,6 +231,13 @@ void renderOsdWarning(char *warningText, bool *blinking, uint8_t *displayAttr)
         return;
     }
 
+    if (isLevelRecoveryActive() && osdWarnGetState(OSD_WARNING_LEVEL_RECOVERY)) {
+        tfp_sprintf(warningText, "RECOVERY");
+        *displayAttr = DISPLAYPORT_ATTR_WARNING;
+        *blinking = true;;
+        return;
+    }
+
 #ifdef USE_ADC_INTERNAL
     const int16_t coreTemperature = getCoreTemperatureCelsius();
     if (osdWarnGetState(OSD_WARNING_CORE_TEMPERATURE) && coreTemperature >= osdConfig()->core_temp_alarm) {
