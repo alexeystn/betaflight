@@ -42,6 +42,11 @@ typedef struct osdElementParms_s {
     uint8_t attr;
 } osdElementParms_t;
 
+typedef struct osdUniqueID_s {
+    const char *uid_string;
+    const char ch;
+} osdUniqueID_t;
+
 typedef void (*osdElementDrawFn)(osdElementParms_t *element);
 
 int osdConvertTemperatureToSelectedUnit(int tempInDegreesCelcius);

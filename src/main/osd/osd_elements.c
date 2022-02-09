@@ -149,6 +149,7 @@
 #include "osd/osd.h"
 #include "osd/osd_elements.h"
 #include "osd/osd_warnings.h"
+#include "osd/osd_unique_id.h"
 
 #include "pg/motor.h"
 #include "pg/stats.h"
@@ -226,6 +227,8 @@ static uint32_t blinkBits[(OSD_ITEM_COUNT + 31) / 32];
 #define CLR_BLINK(item) (blinkBits[(item) / 32] &= ~(1 << ((item) % 32)))
 #define IS_BLINK(item) (blinkBits[(item) / 32] & (1 << ((item) % 32)))
 #define BLINK(item) (IS_BLINK(item) && blinkState)
+
+static char uidChar = '\0';
 
 enum {UP, DOWN};
 
@@ -791,6 +794,10 @@ static void osdBackgroundCraftName(osdElementParms_t *element)
             } else {
                 break;
             }
+        }
+        if (uidChar) {
+            element->buff[i++] = ' ';
+            element->buff[i++] = toupper((unsigned char)uidChar);
         }
         element->buff[i] = '\0';
     }
@@ -1877,8 +1884,21 @@ void osdDrawActiveElementsBackground(displayPort_t *osdDisplayPort)
     }
 }
 
+void osdUniqueIDInit(void)
+{
+    char mcu_id[25];
+    tfp_sprintf(mcu_id, "%08x%08x%08x", U_ID_0, U_ID_1, U_ID_2);
+    unsigned i;
+    for (i = 0; i < ARRAYLEN(uidTable); i++) {
+        if (strcmp(uidTable[i].uid_string, mcu_id) == 0) {
+            uidChar = uidTable[i].ch;
+        }
+    }
+}
+
 void osdElementsInit(bool backgroundLayerFlag)
 {
+    osdUniqueIDInit();
     backgroundLayerSupported = backgroundLayerFlag;
     activeOsdElementCount = 0;
 }
