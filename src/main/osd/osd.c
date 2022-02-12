@@ -150,6 +150,8 @@ PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 9);
 
 PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 0);
 
+PG_REGISTER_WITH_RESET_FN(osdUidConfig_t, osdUidConfig, PG_OSD_UID_CONFIG, 9);
+
 // Controls the display order of the OSD post-flight statistics.
 // Adjust the ordering here to control how the post-flight stats are presented.
 // Every entry in osd_stats_e should be represented. Any that are missing will not
@@ -386,13 +388,6 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->cms_background_type = DISPLAY_BACKGROUND_TRANSPARENT;
 
     osdConfig->heart_rate_channel = 8;
-
-    for (int i = 0; i < OSD_UID_COUNT; i++) {
-        osdConfig->mcu_id[i][0] = 0;
-        osdConfig->mcu_id[i][1] = 0;
-        osdConfig->mcu_id[i][2] = 0;
-        osdConfig->uid_char[i] = 0;
-    }
 }
 
 void pgResetFn_osdElementConfig(osdElementConfig_t *osdElementConfig)
@@ -415,6 +410,16 @@ void pgResetFn_osdElementConfig(osdElementConfig_t *osdElementConfig)
     osdElementConfig->item_pos[OSD_HORIZON_SIDEBARS]   = OSD_POS(14, 6);
     osdElementConfig->item_pos[OSD_CAMERA_FRAME]       = OSD_POS(3, 1);
     osdElementConfig->item_pos[OSD_UP_DOWN_REFERENCE]  = OSD_POS(13, 6);
+}
+
+void pgResetFn_osdUidConfig(osdUidConfig_t *osdUidConfig)
+{
+    for (int i = 0; i < OSD_UID_COUNT; i++) {
+        osdUidConfig->uid[i].mcu_id[0] = 0;
+        osdUidConfig->uid[i].mcu_id[1] = 0;
+        osdUidConfig->uid[i].mcu_id[2] = 0;
+        osdUidConfig->uid[i].character = '\0';
+    }
 }
 
 static void osdDrawLogo(int x, int y)

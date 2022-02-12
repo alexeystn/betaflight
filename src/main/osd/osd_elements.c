@@ -1886,10 +1886,10 @@ void osdDrawActiveElementsBackground(displayPort_t *osdDisplayPort)
 void osdUniqueIDInit(void)
 {
     for (int i = 0; i < OSD_UID_COUNT; i++) {
-        if (((osdConfig()->mcu_id[i][0] == U_ID_0) && 
-        (osdConfig()->mcu_id[i][1] == U_ID_1)) &&
-        (osdConfig()->mcu_id[i][2] == U_ID_2)) {
-            uidChar = osdConfig()->uid_char[i];
+        if (((osdUidConfig()->uid[i].mcu_id[0] == U_ID_0) && 
+        (osdUidConfig()->uid[i].mcu_id[1] == U_ID_1)) &&
+        (osdUidConfig()->uid[i].mcu_id[2] == U_ID_2)) {
+            uidChar = osdUidConfig()->uid[i].character;
             return;
         }
     }

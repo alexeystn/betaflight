@@ -308,8 +308,6 @@ typedef struct osdConfig_s {
     uint8_t cms_background_type;              // For supporting devices, determines whether the CMS background is transparent or opaque
     uint8_t stat_show_cell_value;
     uint8_t heart_rate_channel;
-    uint32_t mcu_id[OSD_UID_COUNT][3];
-    char uid_char[OSD_UID_COUNT];
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
@@ -319,6 +317,17 @@ typedef struct osdElementConfig_s {
 } osdElementConfig_t;
 
 PG_DECLARE(osdElementConfig_t, osdElementConfig);
+
+typedef struct osd_uid_s {
+    uint32_t mcu_id[3];
+    char character;
+} osd_uid_t;
+
+typedef struct osdUidConfig_s {
+    osd_uid_t uid[OSD_UID_COUNT];
+} osdUidConfig_t;
+
+PG_DECLARE(osdUidConfig_t, osdUidConfig);
 
 typedef struct statistic_s {
     timeUs_t armed_time;
