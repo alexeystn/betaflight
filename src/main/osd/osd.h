@@ -53,6 +53,8 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_FRAMERATE_MAX_HZ 60
 #define OSD_FRAMERATE_DEFAULT_HZ 12
 
+#define OSD_UID_COUNT 4
+
 #define OSD_PROFILE_BITS_POS 11
 #define OSD_PROFILE_MASK    (((1 << OSD_PROFILE_COUNT) - 1) << OSD_PROFILE_BITS_POS)
 #define OSD_POS_MAX   0x3FF
@@ -306,6 +308,8 @@ typedef struct osdConfig_s {
     uint8_t cms_background_type;              // For supporting devices, determines whether the CMS background is transparent or opaque
     uint8_t stat_show_cell_value;
     uint8_t heart_rate_channel;
+    uint32_t mcu_id[OSD_UID_COUNT][3];
+    char uid_char[OSD_UID_COUNT];
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);

@@ -386,6 +386,13 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->cms_background_type = DISPLAY_BACKGROUND_TRANSPARENT;
 
     osdConfig->heart_rate_channel = 8;
+
+    for (int i = 0; i < OSD_UID_COUNT; i++) {
+        osdConfig->mcu_id[i][0] = 0;
+        osdConfig->mcu_id[i][1] = 0;
+        osdConfig->mcu_id[i][2] = 0;
+        osdConfig->uid_char[i] = 0;
+    }
 }
 
 void pgResetFn_osdElementConfig(osdElementConfig_t *osdElementConfig)

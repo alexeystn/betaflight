@@ -149,7 +149,6 @@
 #include "osd/osd.h"
 #include "osd/osd_elements.h"
 #include "osd/osd_warnings.h"
-#include "osd/osd_unique_id.h"
 
 #include "pg/motor.h"
 #include "pg/stats.h"
@@ -1886,12 +1885,12 @@ void osdDrawActiveElementsBackground(displayPort_t *osdDisplayPort)
 
 void osdUniqueIDInit(void)
 {
-    char mcu_id[25];
-    tfp_sprintf(mcu_id, "%08x%08x%08x", U_ID_0, U_ID_1, U_ID_2);
-    unsigned i;
-    for (i = 0; i < ARRAYLEN(uidTable); i++) {
-        if (strcmp(uidTable[i].uid_string, mcu_id) == 0) {
-            uidChar = uidTable[i].ch;
+    for (int i = 0; i < OSD_UID_COUNT; i++) {
+        if (((osdConfig()->mcu_id[i][0] == U_ID_0) && 
+        (osdConfig()->mcu_id[i][1] == U_ID_1)) &&
+        (osdConfig()->mcu_id[i][2] == U_ID_2)) {
+            uidChar = osdConfig()->uid_char[i];
+            return;
         }
     }
 }

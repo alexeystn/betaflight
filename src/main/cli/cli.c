@@ -1295,6 +1295,97 @@ static void printSerial(dumpFlags_t dumpMask, const serialConfig_t *serialConfig
     }
 }
 
+static void printUid(dumpFlags_t dumpMask, const char *headingStr)
+{
+    const char *format = "uid %d %08x%08x%08x %c";
+    headingStr = cliPrintSectionHeading(dumpMask, false, headingStr);
+    for (int i = 0; i < OSD_UID_COUNT; i++) {
+        bool equalsDefault = true;
+        for (int j = 0; j < 3; j++) {
+            if (osdConfigMutable()->mcu_id[i][j] != 0) {
+                equalsDefault = false;
+            }
+        }
+        if (osdConfigMutable()->uid_char[i] != '\0') {
+            equalsDefault = false;
+        }
+
+        cliDumpPrintLinef(dumpMask, equalsDefault, format,
+            i,
+            osdConfigMutable()->mcu_id[i][0],
+            osdConfigMutable()->mcu_id[i][1],
+            osdConfigMutable()->mcu_id[i][2],
+            osdConfigMutable()->uid_char[i]
+        );
+    }
+}
+
+static void cliUid(const char *cmdName, char *cmdline)
+{
+    const char *format = "uid %d %08x%08x%08x %c";
+
+    char *tok;
+    char *saveptr;
+
+    tok  = strtok_r(cmdline, " ", &saveptr);
+
+    uint32_t mcu_id[3] = {0, 0, 0};
+    char character = 0;
+    int uid_num;
+
+    if (!tok) {
+        printUid(DUMP_MASTER, NULL);
+        return;
+    }
+
+    int value = atoi(tok);
+    if (value < 0 || value >= OSD_UID_COUNT) {
+        cliShowArgumentRangeError(cmdName, "ID", 0, OSD_UID_COUNT);
+        return;
+    }
+    uid_num = value;
+
+    tok = strtok_r(NULL, " ", &saveptr);    
+    if (tok) {
+        if (strlen(tok) != 24) {
+            cliPrintError(cmdName, "MCU_ID LENGTH MUST BE 24");
+            return;
+        } else {
+            for (int i = 0; i < 3; i++) {
+                char buf[8+1];
+                memcpy(buf, tok + (i*8), 8);
+                buf[8] = '\0';
+                mcu_id[i] = strtoul(buf, NULL, 16);
+                if (mcu_id[i] == 0) {
+                    cliPrintError(cmdName, "WRONG MCU_ID FORMAT");
+                    return;
+                }
+            }
+        }
+    } else {
+        return;
+    }
+
+    tok = strtok_r(NULL, " ", &saveptr); 
+    if (tok) {
+        if (strlen(tok) != 1) {
+            cliPrintError(cmdName, "UID LABEL MUST BE 1 CHAR");
+            return;
+        }
+    } else {
+        return;
+    }
+
+    character = tok[0];
+
+    for (int i = 0; i < 3; i++) {
+        osdConfigMutable()->mcu_id[uid_num][i] = mcu_id[i];
+    }
+    osdConfigMutable()->uid_char[uid_num] = character;
+
+    cliDumpPrintLinef(0, false, format, uid_num, mcu_id[0], mcu_id[1], mcu_id[2], character);
+}
+
 static void cliSerial(const char *cmdName, char *cmdline)
 {
     const char *format = "serial %d %d %ld %ld %ld %ld";
@@ -6354,6 +6445,8 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif
 
             printRxFailsafe(dumpMask, rxFailsafeChannelConfigs_CopyArray, rxFailsafeChannelConfigs(0), "rxfail");
+            
+            printUid(dumpMask, "unique_id");
         }
 
         if (dumpMask & HARDWARE_ONLY) {
@@ -6646,6 +6739,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("vtx_info", "vtx power config dump", NULL, cliVtxInfo),
     CLI_COMMAND_DEF("vtxtable", "vtx frequency table", "<band> <bandname> <bandletter> [FACTORY|CUSTOM] <freq> ... <freq>\r\n", cliVtxTable),
 #endif
+    CLI_COMMAND_DEF("uid", "configure unique osd id's", NULL, cliUid),
 };
 
 static void cliHelp(const char *cmdName, char *cmdline)
