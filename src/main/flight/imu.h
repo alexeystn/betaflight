@@ -58,6 +58,7 @@ typedef struct imuConfig_s {
     uint16_t dcm_ki;                        // DCM filter integral gain ( x 10000)
     uint8_t small_angle;
     uint8_t level_recovery;
+    uint16_t level_recovery_delay;
     uint16_t level_recovery_time;
     uint16_t level_recovery_coef;
     uint16_t level_recovery_threshold;
@@ -69,6 +70,7 @@ typedef struct imuRuntimeConfig_s {
     float dcm_ki;
     float dcm_kp;
     uint8_t level_recovery;
+    uint16_t level_recovery_delay;
     uint16_t level_recovery_time;
     uint16_t level_recovery_coef;
     uint16_t level_recovery_threshold;

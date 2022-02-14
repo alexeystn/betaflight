@@ -92,7 +92,7 @@ float accAverage[XYZ_AXIS_COUNT];
 bool canUseGPSHeading = true;
 
 bool levelRecoveryActive = false;
-int levelRecoveryStrength = 0; // from 0 (min) to 1000 (max)
+float levelRecoveryStrength = 0;
 
 static float throttleAngleScale;
 static int throttleAngleValue;
@@ -122,6 +122,7 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .dcm_ki = 0,                   // 0.003 * 10000
     .small_angle = 25,
     .level_recovery = 0,
+    .level_recovery_delay = 500,
     .level_recovery_time = 2500,
     .level_recovery_coef = 5,
     .level_recovery_threshold = 1950
@@ -180,6 +181,7 @@ void imuConfigure(uint16_t throttle_correction_angle, uint8_t throttle_correctio
     imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 10000.0f;
     imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
     imuRuntimeConfig.level_recovery = imuConfig()->level_recovery;
+    imuRuntimeConfig.level_recovery_delay = imuConfig()->level_recovery_delay;
     imuRuntimeConfig.level_recovery_time = imuConfig()->level_recovery_time;
     imuRuntimeConfig.level_recovery_coef = imuConfig()->level_recovery_coef;
     imuRuntimeConfig.level_recovery_threshold = imuConfig()->level_recovery_threshold;
@@ -438,7 +440,7 @@ static float imuCalcKpGain(timeUs_t currentTimeUs, bool useAcc, float *gyroAvera
        }
     }
     if (levelRecoveryActive) {
-        ret = imuRuntimeConfig.dcm_kp * (1.0f + imuRuntimeConfig.level_recovery_coef * levelRecoveryStrength / 1000);
+        ret = imuRuntimeConfig.dcm_kp * (1.0f + imuRuntimeConfig.level_recovery_coef * levelRecoveryStrength);
     }
     DEBUG_SET(DEBUG_RECOVERY, 0, lrintf(ret*100.0f));
 
@@ -459,17 +461,21 @@ static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
         }
     }
 
-    timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime);
-    if (elapsedSinceCrash < imuRuntimeConfig.level_recovery_time * 1000) {
-        levelRecoveryActive = true;
-        levelRecoveryStrength = (imuRuntimeConfig.level_recovery_time * 1000 - elapsedSinceCrash) / imuRuntimeConfig.level_recovery_time;
-        // First half - full strenght, second half - decaying strengh
-        levelRecoveryStrength *= 2;
-        if (levelRecoveryStrength > 1000) 
-            levelRecoveryStrength = 1000;
-    } else {
-        levelRecoveryActive = false;
-        levelRecoveryStrength = 0;
+    timeUs_t elapsedSinceCrash = (currentTimeUs - previousCrashTime) / 1000;
+
+    if (elapsedSinceCrash > imuRuntimeConfig.level_recovery_delay) {
+        if (elapsedSinceCrash < (imuRuntimeConfig.level_recovery_time + imuRuntimeConfig.level_recovery_delay)) {
+            levelRecoveryActive = true;
+            levelRecoveryStrength = 1.0f - (float)(elapsedSinceCrash - imuRuntimeConfig.level_recovery_delay) / imuRuntimeConfig.level_recovery_time;
+            // First half - full strenght, second half - decaying strengh
+            levelRecoveryStrength *= 2;
+            if (levelRecoveryStrength > 1) {
+                levelRecoveryStrength = 1;
+            }
+        } else {
+            levelRecoveryActive = false;
+            levelRecoveryStrength = 0;
+        }
     }
 
     if (!ARMING_FLAG(ARMED)) {
@@ -478,7 +484,7 @@ static void imuHandleLevelRecovery(timeUs_t currentTimeUs)
         previousCrashTime = 0;
     }
 
-    DEBUG_SET(DEBUG_RECOVERY, 1, levelRecoveryStrength);
+    DEBUG_SET(DEBUG_RECOVERY, 1, lrintf(levelRecoveryStrength*1000.0f));
     DEBUG_SET(DEBUG_RECOVERY, 2, overflowCnt);
 }
 
