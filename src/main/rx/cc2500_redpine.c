@@ -425,14 +425,27 @@ void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
         rcData[5] = (packet[CHANNEL_START + 2] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
         rcData[6] = (packet[CHANNEL_START + 4] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
         rcData[7] = (packet[CHANNEL_START + 5] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[8] = (packet[CHANNEL_START + 6] & 0x01) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[9] = (packet[CHANNEL_START + 6] & 0x02) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[10] = (packet[CHANNEL_START + 6] & 0x04) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[11] = (packet[CHANNEL_START + 6] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[12] = (packet[CHANNEL_START + 6] & 0x10) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[13] = (packet[CHANNEL_START + 6] & 0x20) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[14] = (packet[CHANNEL_START + 6] & 0x40) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
-        rcData[15] = (packet[CHANNEL_START + 6] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+
+        if (rxCc2500SpiConfig()->redpineHighRes) {
+            channelValue = (uint16_t)packet[CHANNEL_START + 6] * 8;
+            rcData[8] = SCALE_REDPINE(channelValue);
+            rcData[9] = PWM_RANGE_MIDDLE;
+            rcData[10] = PWM_RANGE_MIDDLE;
+            rcData[11] = PWM_RANGE_MIDDLE;
+            rcData[12] = PWM_RANGE_MIDDLE;
+            rcData[13] = PWM_RANGE_MIDDLE;
+            rcData[14] = PWM_RANGE_MIDDLE;
+            rcData[15] = PWM_RANGE_MIDDLE;
+        } else {
+            rcData[8] = (packet[CHANNEL_START + 6] & 0x01) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[9] = (packet[CHANNEL_START + 6] & 0x02) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[10] = (packet[CHANNEL_START + 6] & 0x04) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[11] = (packet[CHANNEL_START + 6] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[12] = (packet[CHANNEL_START + 6] & 0x10) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[13] = (packet[CHANNEL_START + 6] & 0x20) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[14] = (packet[CHANNEL_START + 6] & 0x40) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+            rcData[15] = (packet[CHANNEL_START + 6] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN;
+        }
     }
 }
 
