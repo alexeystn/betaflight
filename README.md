@@ -5,6 +5,7 @@ This is Betaflight 4.3 fork by AlexeyStn with three major features:
 * IMU level recovery
 * Heart rate OSD element
 * Unique ID label on OSD
+* Redpine high-resolution aux channel
 
 _TODO: English description_
 
@@ -80,7 +81,17 @@ save
 ```
 
 В результате при вводе одной и той же таблицы в CLI во все дроны, на каждом будет показываться разное имя пилота: у дрона с идентификатором `0051003...` будет выводиться `ALEXEY Z`, для дрона `002c003...` - `ALEXEY Y` и т.д.
-   
+
+## Redpine high-resolution aux channel
+
+Вместо 8 однобитных aux-каналов (с 9 по 16) протоколом Redpine принимается один 8-битный aux.
+
+Требуется специализированная прошивка мультипротокольного модуля.
+
+```
+set redpine_high_res = ON
+```
+
 ## Установка
 
 1. Скачать HEX-файл для своего микроконтроллера F411/F405/F72X2 со страницы [Releases](https://github.com/alexeystn/betaflight/releases/).
