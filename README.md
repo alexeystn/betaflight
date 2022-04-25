@@ -1,6 +1,6 @@
 # Betaflight 4.3.0-STN
 
-This is Betaflight 4.3 fork by AlexeyStn with three major features:
+This is Betaflight 4.3 fork by AlexeyStn with four major features:
 
 * IMU level recovery
 * Heart rate OSD element
@@ -94,7 +94,7 @@ set redpine_high_res = ON
 
 ## Установка
 
-1. Скачать HEX-файл для своего микроконтроллера F411/F405/F72X2 со страницы [Releases](https://github.com/alexeystn/betaflight/releases/).
+1. Скачать HEX-файл для своего микроконтроллера F411/F405/F7X2 со страницы [Releases](https://github.com/alexeystn/betaflight/releases/).
 2. В конфигураторе на странице перепрошивки через `Load Firmware [Local]` выбрать скачанный hex.
 3. В меню `Choose a Board...` выбрать название своего контроллера. _Обязательно!_
 4. Нажать `Flash Firware` и дождаться окончания загрузки.
