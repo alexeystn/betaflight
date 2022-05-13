@@ -889,6 +889,10 @@ static void osdBackgroundDisplayName(osdElementParms_t *element)
                 break;
             }
         }
+        if (uidChar) {
+            element->buff[i++] = ' ';
+            element->buff[i++] = toupper((unsigned char)uidChar);
+        }
         element->buff[i] = '\0';
     }
 }
