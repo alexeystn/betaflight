@@ -111,6 +111,12 @@ void renderOsdWarning(char *warningText, bool *blinking, uint8_t *displayAttr)
         }
     }
 
+    if (!getBatteryCellCount()) {
+        tfp_sprintf(warningText, "INITIALIZING");
+        *displayAttr = DISPLAYPORT_ATTR_CRITICAL;
+        return;
+    }
+
     if (getArmingDisableFlags() & ARMING_DISABLED_CALIBRATING) {
         tfp_sprintf(warningText, "CALIBRATING");
         *displayAttr = DISPLAYPORT_ATTR_CRITICAL;
