@@ -400,6 +400,9 @@ static FAST_CODE void gyroUpdateSensor(gyroSensor_t *gyroSensor)
     } else {
         performGyroCalibration(gyroSensor, gyroConfig()->gyroMovementCalibrationThreshold);
     }
+    DEBUG_SET(DEBUG_GYRO_CALIB, X, lrintf(gyroSensor->gyroDev.gyroZero[X]));
+    DEBUG_SET(DEBUG_GYRO_CALIB, Y, lrintf(gyroSensor->gyroDev.gyroZero[Y]));
+    DEBUG_SET(DEBUG_GYRO_CALIB, Z, lrintf(gyroSensor->gyroDev.gyroZero[Z]));
 }
 
 FAST_CODE void gyroUpdate(void)
