@@ -6,6 +6,7 @@ This is Betaflight 4.3 fork by AlexeyStn with four major features:
 * Heart rate OSD element
 * Unique ID label on OSD
 * Redpine high-resolution aux channel
+* Fast startup time
 
 _TODO: English description_
 
