@@ -241,6 +241,14 @@ STATIC_UNIT_TESTED NOINLINE void performGyroCalibration(gyroSensor_t *gyroSensor
     }
 
     if (isOnFinalGyroCalibrationCycle(&gyroSensor->calibration)) {
+        uint16_t maxDev = 0;
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            float dev = devStandardDeviation(&gyroSensor->calibration.var[axis]);
+            if (dev > maxDev) {
+                maxDev = dev;
+            }
+        }
+        DEBUG_SET(DEBUG_GYRO_CALIB, 3, maxDev);
         schedulerResetTaskStatistics(TASK_SELF); // so calibration cycles do not pollute tasks statistics
         if (!firstArmingCalibrationWasStarted || (getArmingDisableFlags() & ~ARMING_DISABLED_CALIBRATING) == 0) {
             beeper(BEEPER_GYRO_CALIBRATED);
@@ -398,6 +406,9 @@ static FAST_CODE void gyroUpdateSensor(gyroSensor_t *gyroSensor)
     } else {
         performGyroCalibration(gyroSensor, gyroConfig()->gyroMovementCalibrationThreshold);
     }
+    DEBUG_SET(DEBUG_GYRO_CALIB, X, lrintf(gyroSensor->gyroDev.gyroZero[X]));
+    DEBUG_SET(DEBUG_GYRO_CALIB, Y, lrintf(gyroSensor->gyroDev.gyroZero[Y]));
+    DEBUG_SET(DEBUG_GYRO_CALIB, Z, lrintf(gyroSensor->gyroDev.gyroZero[Z]));
 }
 
 FAST_CODE void gyroUpdate(void)
