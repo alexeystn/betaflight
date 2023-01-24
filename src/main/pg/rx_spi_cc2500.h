@@ -37,6 +37,7 @@ typedef struct rxCc2500SpiConfig_s {
     uint8_t bindHopData[50];
     uint8_t rxNum;
     uint8_t a1Source;
+    uint8_t redpineHighRes;
     uint8_t chipDetectEnabled;
     ioTag_t txEnIoTag;
     ioTag_t lnaEnIoTag;
