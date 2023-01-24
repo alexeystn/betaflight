@@ -1285,6 +1285,105 @@ static void printSerial(dumpFlags_t dumpMask, const serialConfig_t *serialConfig
     }
 }
 
+static void printUid(dumpFlags_t dumpMask, const osdUidConfig_t *osdUidConfig, const osdUidConfig_t *osdUidConfigDefault, const char *headingStr)
+{
+    const char *format = "uid %d %08x%08x%08x %c";
+    headingStr = cliPrintSectionHeading(dumpMask, false, headingStr);
+    for (int i = 0; i < OSD_UID_COUNT; i++) {
+        bool equalsDefault = true;
+        if (osdUidConfigDefault) {
+            equalsDefault = !memcmp(&osdUidConfig->uid[i], &osdUidConfigDefault->uid[i], sizeof(osdUidConfig->uid[i]));
+            headingStr = cliPrintSectionHeading(dumpMask, !equalsDefault, headingStr);
+            cliDefaultPrintLinef(dumpMask, equalsDefault, format,
+                i,
+                osdUidConfigDefault->uid[i].mcu_id[0],
+                osdUidConfigDefault->uid[i].mcu_id[1],
+                osdUidConfigDefault->uid[i].mcu_id[2],
+                osdUidConfigDefault->uid[i].character
+            );
+        }
+        cliDumpPrintLinef(dumpMask, equalsDefault, format,
+            i,
+            osdUidConfig->uid[i].mcu_id[0],
+            osdUidConfig->uid[i].mcu_id[1],
+            osdUidConfig->uid[i].mcu_id[2],
+            osdUidConfig->uid[i].character
+            );
+    }
+}
+
+static void cliUid(const char *cmdName, char *cmdline)
+{
+    const char *format = "uid %d %08x%08x%08x %c";
+
+    char *tok;
+    char *saveptr;
+
+    tok  = strtok_r(cmdline, " ", &saveptr);
+
+    uint32_t mcu_id[3] = {0, 0, 0};
+    char character = 0;
+    int uid_num;
+
+    if (!tok) {
+        printUid(DUMP_MASTER, osdUidConfig(), NULL, NULL);
+        return;
+    }
+
+    int value = atoi(tok);
+    if (value < 0 || value >= OSD_UID_COUNT) {
+        cliShowArgumentRangeError(cmdName, "INDEX", 0, OSD_UID_COUNT);
+        return;
+    }
+    uid_num = value;
+
+    tok = strtok_r(NULL, " ", &saveptr); 
+
+    if (tok) {
+        if (!strcasecmp(tok, "none")) {
+            memset(&osdUidConfigMutable()->uid[uid_num], 0, sizeof(osd_uid_t));
+            cliPrintLine("UID is freed");
+            return;
+        }
+        if (strlen(tok) != 24) {
+            cliPrintError(cmdName, "MCU_ID LENGTH MUST BE 24");
+            return;
+        } else {
+            for (int i = 0; i < 3; i++) {
+                char buf[8+1];
+                memcpy(buf, tok + (i*8), 8);
+                buf[8] = '\0';
+                mcu_id[i] = strtoul(buf, NULL, 16);
+                if (mcu_id[i] == 0) {
+                    cliPrintError(cmdName, "WRONG MCU_ID FORMAT");
+                    return;
+                }
+            }
+        }
+    } else {
+        return;
+    }
+
+    tok = strtok_r(NULL, " ", &saveptr); 
+    if (tok) {
+        if (strlen(tok) != 1) {
+            cliPrintError(cmdName, "UID LABEL MUST BE 1 CHAR");
+            return;
+        }
+    } else {
+        return;
+    }
+
+    character = tok[0];
+
+    for (int i = 0; i < 3; i++) {
+        osdUidConfigMutable()->uid[uid_num].mcu_id[i] = mcu_id[i];
+    }
+    osdUidConfigMutable()->uid[uid_num].character = character;
+
+    cliDumpPrintLinef(0, false, format, uid_num, mcu_id[0], mcu_id[1], mcu_id[2], character);
+}
+
 static void cliSerial(const char *cmdName, char *cmdline)
 {
     const char *format = "serial %d %d %ld %ld %ld %ld";
@@ -6331,6 +6430,8 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 #endif
 
             printRxFailsafe(dumpMask, rxFailsafeChannelConfigs_CopyArray, rxFailsafeChannelConfigs(0), "rxfail");
+            
+            printUid(dumpMask, &osdUidConfig_Copy, osdUidConfig(), "unique_id");
         }
 
         if (dumpMask & HARDWARE_ONLY) {
@@ -6625,6 +6726,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("vtx_info", "vtx power config dump", NULL, cliVtxInfo),
     CLI_COMMAND_DEF("vtxtable", "vtx frequency table", "<band> <bandname> <bandletter> [FACTORY|CUSTOM] <freq> ... <freq>\r\n", cliVtxTable),
 #endif
+    CLI_COMMAND_DEF("uid", "configure unique osd id's", "<index> <mcu_id> <character>", cliUid),
 };
 
 static void cliHelp(const char *cmdName, char *cmdline)

@@ -234,6 +234,8 @@ static uint32_t blinkBits[(OSD_ITEM_COUNT + 31) / 32];
 #define IS_BLINK(item) (blinkBits[(item) / 32] & (1 << ((item) % 32)))
 #define BLINK(item) (IS_BLINK(item) && blinkState)
 
+static char uidChar = '\0';
+
 enum {UP, DOWN};
 
 static int osdDisplayWrite(osdElementParms_t *element, uint8_t x, uint8_t y, uint8_t attr, const char *s)
@@ -814,6 +816,20 @@ static void toUpperCase(char* dest, const char* src, unsigned int maxSrcLength)
     dest[i] = '\0';
 }
 
+static void appendUidChar(char* str)
+{
+    unsigned int i;
+    if (!uidChar) {
+        return;
+    }
+    i = strlen(str);
+    if (i < MAX_NAME_LENGTH - 2) {
+        str[i] = ' ';
+        str[i] = uidChar;
+        str[i] = '\0';
+    };
+}
+
 static void osdBackgroundCraftName(osdElementParms_t *element)
 {
     if (strlen(pilotConfig()->craftName) == 0) {
@@ -821,6 +837,7 @@ static void osdBackgroundCraftName(osdElementParms_t *element)
     } else {
         toUpperCase(element->buff, pilotConfig()->craftName, MAX_NAME_LENGTH);
     }
+    appendUidChar(element->buff);
 }
 
 #ifdef USE_ACC
@@ -900,6 +917,7 @@ static void osdBackgroundPilotName(osdElementParms_t *element)
     } else {
         toUpperCase(element->buff, pilotConfig()->pilotName, MAX_NAME_LENGTH);
     }
+    appendUidChar(element->buff);
 }
 
 #ifdef USE_PERSISTENT_STATS
@@ -2041,8 +2059,21 @@ void osdDrawActiveElementsBackground(displayPort_t *osdDisplayPort)
     }
 }
 
+void osdUniqueIDInit(void)
+{
+    for (int i = 0; i < OSD_UID_COUNT; i++) {
+        if (((osdUidConfig()->uid[i].mcu_id[0] == U_ID_0) && 
+        (osdUidConfig()->uid[i].mcu_id[1] == U_ID_1)) &&
+        (osdUidConfig()->uid[i].mcu_id[2] == U_ID_2)) {
+            uidChar = osdUidConfig()->uid[i].character;
+            return;
+        }
+    }
+}
+
 void osdElementsInit(bool backgroundLayerFlag)
 {
+    osdUniqueIDInit();
     backgroundLayerSupported = backgroundLayerFlag;
     activeOsdElementCount = 0;
     pt1FilterInit(&batteryEfficiencyFilt, pt1FilterGain(EFFICIENCY_CUTOFF_HZ, 1.0f / osdConfig()->framerate_hz));

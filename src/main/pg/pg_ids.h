@@ -161,6 +161,7 @@
 #define PG_OSD_FONT_CONFIG 2047
 #define PG_OSD_VIDEO_CONFIG 2046
 #define PG_OSD_ELEMENT_CONFIG 2045
+#define PG_OSD_UID_CONFIG 2044
 
 
 // 4095 is currently the highest number that can be used for a PGN due to the top 4 bits of the 16 bit value being reserved for the version when the PG is stored in an EEPROM.
