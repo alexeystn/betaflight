@@ -112,6 +112,18 @@ void renderOsdWarning(char *warningText, bool *blinking, uint8_t *displayAttr)
         }
     }
 
+    if (!getBatteryCellCount()) {
+        tfp_sprintf(warningText, "INITIALIZING");
+        *displayAttr = DISPLAYPORT_ATTR_CRITICAL;
+        return;
+    }
+
+    if (getArmingDisableFlags() & ARMING_DISABLED_CALIBRATING) {
+        tfp_sprintf(warningText, "CALIBRATING");
+        *displayAttr = DISPLAYPORT_ATTR_CRITICAL;
+        return;
+    }
+
 #ifdef USE_DSHOT
     if (isTryingToArm() && !ARMING_FLAG(ARMED)) {
         int armingDelayTime = (getLastDshotBeaconCommandTimeUs() + DSHOT_BEACON_GUARD_DELAY_US - currentTimeUs) / 1e5;
