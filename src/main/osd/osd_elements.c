@@ -825,8 +825,8 @@ static void appendUidChar(char* str)
     i = strlen(str);
     if (i < MAX_NAME_LENGTH - 2) {
         str[i] = ' ';
-        str[i] = uidChar;
-        str[i] = '\0';
+        str[i+1] = uidChar;
+        str[i+2] = '\0';
     };
 }
 
