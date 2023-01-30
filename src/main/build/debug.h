@@ -106,6 +106,7 @@ typedef enum {
     DEBUG_VTX_MSP,
     DEBUG_GPS_DOP,
     DEBUG_GYRO_CALIB,
+    DEBUG_FAILSAFE,
     DEBUG_COUNT
 } debugType_e;
 
