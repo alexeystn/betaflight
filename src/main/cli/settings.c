@@ -460,7 +460,8 @@ const char * const lookupTableLedstripColors[COLOR_COUNT] = {
     "BLUE",
     "DARK_VIOLET",
     "MAGENTA",
-    "DEEP_PINK"
+    "DEEP PINK",
+    "POLICE"
 };
 
 static const char * const lookupTableGyroFilterDebug[] = {

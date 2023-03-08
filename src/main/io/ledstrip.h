@@ -91,6 +91,7 @@ typedef enum {
     COLOR_DARK_VIOLET,
     COLOR_MAGENTA,
     COLOR_DEEP_PINK,
+    COLOR_POLICE,
     COLOR_COUNT
 } colorId_e;
 

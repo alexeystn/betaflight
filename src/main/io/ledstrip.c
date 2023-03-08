@@ -1240,6 +1240,25 @@ static void applySimpleProfile(timeUs_t currentTimeUs)
         colorIndex = selectVisualBeeperColor(colorIndex);
     }
 
+    if (ledStripConfig()->ledstrip_race_color == COLOR_POLICE) {
+        if (ARMING_FLAG(ARMED)) {
+            switch((millis() % (150 * 8)) / 150) {
+                case 0:
+                case 2:
+                    colorIndex = COLOR_RED;
+                    break;
+                case 4:
+                case 6:
+                    colorIndex = COLOR_BLUE;
+                    break;
+                default:
+                    colorIndex = COLOR_BLACK;
+            }
+        } else {
+            colorIndex = COLOR_BLACK;
+        } 
+    }
+
     if ((colorIndex != previousProfileColorIndex) || (currentTimeUs >= colorUpdateTimeUs)) {
         setStripColor(&hsv[colorIndex]);
         ws2811UpdateStrip((ledStripFormatRGB_e)ledStripConfig()->ledstrip_grb_rgb, ledStripConfig()->ledstrip_brightness);
