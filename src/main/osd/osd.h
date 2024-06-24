@@ -42,6 +42,8 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_PROFILE_COUNT 1
 #endif
 
+#define OSD_UID_COUNT 4
+
 #define OSD_RCCHANNELS_COUNT 4
 
 #define OSD_CAMERA_FRAME_MIN_WIDTH  2
@@ -364,6 +366,17 @@ typedef struct osdElementConfig_s {
 } osdElementConfig_t;
 
 PG_DECLARE(osdElementConfig_t, osdElementConfig);
+
+typedef struct osd_uid_s {
+    uint32_t mcu_id[3];
+    char character;
+} osd_uid_t;
+
+typedef struct osdUidConfig_s {
+    osd_uid_t uid[OSD_UID_COUNT];
+} osdUidConfig_t;
+
+PG_DECLARE(osdUidConfig_t, osdUidConfig);
 
 typedef struct statistic_s {
     timeUs_t armed_time;
