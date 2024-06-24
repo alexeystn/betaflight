@@ -579,6 +579,10 @@ FAST_CODE_NOINLINE void rxFrameCheck(timeUs_t currentTimeUs, timeDelta_t current
     
     DEBUG_SET(DEBUG_FAILSAFE, 1, rxSignalReceived);
     DEBUG_SET(DEBUG_RX_SIGNAL_LOSS, 0, rxSignalReceived);
+    DEBUG_SET(DEBUG_STN, 0, rcData[7]);
+    DEBUG_SET(DEBUG_STN, 1, rcData[8]);
+    DEBUG_SET(DEBUG_STN, 2, rcData[9]);
+    DEBUG_SET(DEBUG_STN, 3, rcData[10]);
 }
 
 #if defined(USE_RX_PWM) || defined(USE_RX_PPM)
